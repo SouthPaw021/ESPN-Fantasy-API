@@ -24,7 +24,7 @@ def get_draft_details(league_id, season_id, espn_cookies):
     draft_picks = espn_draft_detail['draftDetail']['picks']
     df = pd.DataFrame(draft_picks)
     # get only columns we need in draft detail
-    draft_df = df[['overallPickNumber', 'playerId', 'teamId']].copy()
+    draft_df = df[['overallPickNumber', 'playerId', 'teamId', 'bidAmount', 'keeper']].copy()
     return draft_df
 
 # get player info
@@ -62,8 +62,8 @@ def get_team_info(season_id):
     team_names = team_data['settings']['proTeams']
     df = pd.DataFrame(team_names)
     # get only needed columns for teams
-    team_df = df[['id', 'location', 'name']].copy()
-    team_df["team name"] = team_df['location'].astype(str) +" "+ team_df["name"]
+    team_df = df[['id', 'abbrev']].copy()
+    # *Don't need - team_df["team name"] = team_df['location'].astype(str) +" "+ team_df["name"]
     # rename in column
     team_df.rename(columns = {'id':'team_id'}, inplace = True)
     return team_df

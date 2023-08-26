@@ -7,38 +7,76 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# load in environment variables
+# Load in environment variables
 LEAGUE_ID = os.getenv('LEAGUE_ID')
 SWID_COOKIE = os.getenv('SWID_COOKIE')
 ESPN_S2_COOKIES = os.getenv('ESPN_S2_COOKIES')
 
-# update this to use env variables
+# Update this to use env variables
 espn_cookies = {"swid": SWID_COOKIE,
                 "espn_s2": ESPN_S2_COOKIES}
 
-
-# create an empty dataframe to append to
+# Create an empty dataframe to append to
 all_drafts_df = pd.DataFrame()
 
-# loop over all the years
+# Loop over all the years
 for year in years:
     print(year)
-    # get all needed info for the year
+    # Get all needed info for the year
     draft_df = get_draft_details(LEAGUE_ID, year, espn_cookies)
     player_df = get_player_info(year, espn_cookies)
     team_df = get_team_info(year)
-    # merge tables together
+   
+    # Merge tables together
     df2 = pd.merge(draft_df, player_df, how="inner", left_on="playerId", right_on = "player_id")
     final_df = pd.merge(df2, team_df, how="inner", left_on="proTeamId", right_on = "team_id")
-    # rename columns and map values for easier consumption
+   
+    # Rename columns and map values for easier consumption
     league_draft = final_df.replace({"defaultPositionId": position_mapping})
     league_draft_info = league_draft.replace({"teamId": league_teams})
-    league_draft_final = league_draft_info[['overallPickNumber', 'teamId', 'defaultPositionId', 'fullName', 'team name']]
-    league_draft_final.rename(columns = {'overallPickNumber':'pick', 'teamId':'geebs_team',
-                              'defaultPositionId':'position', 'fullName':'player', 'team name': 'player_team'}, inplace = True)
-    league_draft_final['year'] = year
-    league_draft_final['year'] = league_draft_final['year'].apply(str)
-    all_drafts_df = all_drafts_df.append(league_draft_final)
+    league_draft_final = league_draft_info[['teamId',  'fullName', 'abbrev', 'defaultPositionId', 'overallPickNumber', 'keeper', 'bidAmount']].copy()
+    league_draft_final.rename(columns = {'overallPickNumber':'Pick', 'teamId':'Owner', 'keeper':'Kept', 'bidAmount':'Paid',
+                              'defaultPositionId':'Position', 'fullName':'Player', 'abbrev': 'Team'}, inplace = True)
+    league_draft_final['Year'] = year
+    
+    #Concatenate all DataFrames in the list
+    all_drafts_df = pd.concat([all_drafts_df, league_draft_final])
 
-# export into CSV
-all_drafts_df.to_csv('your_draft_results_file.csv', index=False)
+# Reorder columns and format/replace values
+all_drafts_df = all_drafts_df[['Year', 'Owner', 'Player', 'Team', 'Position', 'Kept', 'Paid', 'Pick']]
+all_drafts_df['Paid'] = all_drafts_df['Paid'].apply(lambda x: "${:,.0f}".format(x))
+all_drafts_df['Kept'] = all_drafts_df['Kept'].replace({True: 'K', False: ''})
+
+# Adds # of years kept in a row
+current_player = None
+streak_count = 0
+years_kept = []
+
+for index, row in all_drafts_df.iterrows():
+    if row['Kept'] == 'K':
+        if row['Player'] == current_player:
+            streak_count += 1
+        else:
+            current_player = row['Player']
+            streak_count = 1
+    else:
+        streak_count = 0
+    
+    years_kept.append(streak_count)
+
+all_drafts_df['Years Kept'] = years_kept
+
+# Sort by 'Paid' column in descending order
+all_drafts_df.sort_values(by='Paid', ascending=False, inplace=True)
+
+# Sort by 'Kept' column in descending order
+all_drafts_df.sort_values(by='Kept', ascending=False, inplace=True)
+
+# Within each 'Kept' group, sort by 'Owner' column in ascending order
+all_drafts_df.sort_values(by='Owner', ascending=True, inplace=True, kind='mergesort')
+
+# Within each 'Kept' and 'Owner' group, sort by 'Year' column in descending order
+all_drafts_df.sort_values(by='Year', ascending=False, inplace=True, kind='mergesort')
+
+#Export to CSV
+all_drafts_df.to_csv('SDFFL_historical_draft_results.csv', index=False)
