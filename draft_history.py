@@ -46,6 +46,10 @@ for year in years:
 all_drafts_df = all_drafts_df[['Year', 'Owner', 'Player', 'Team', 'Position', 'Kept', 'Paid', 'Pick']]
 all_drafts_df['Paid'] = all_drafts_df['Paid'].apply(lambda x: "${:,.0f}".format(x))
 all_drafts_df['Kept'] = all_drafts_df['Kept'].replace({True: 'K', False: ''})
+all_drafts_df['Year'] = all_drafts_df['Year'].astype(int)
+
+# Sort the DataFrame by 'Player' and 'Year'
+all_drafts_df.sort_values(by=['Player', 'Year'], ascending=[True, True], inplace=True)
 
 # Adds # of years kept in a row
 current_player = None
@@ -66,6 +70,9 @@ for index, row in all_drafts_df.iterrows():
 
 all_drafts_df['Years Kept'] = years_kept
 
+#Waiver Claim?
+all_drafts_df['Drafted Last Year'] = all_drafts_df.apply(lambda row: 'Drafted' if row['Kept'] == 'K' and row['Player'] in all_drafts_df.loc[all_drafts_df['Year'] == row['Year'] - 1, 'Player'].values else ('' if row['Kept'] != 'K' else 'Waiver Claim'), axis=1)
+
 # Sort by 'Paid' column in descending order
 all_drafts_df.sort_values(by='Paid', ascending=False, inplace=True)
 
@@ -79,4 +86,4 @@ all_drafts_df.sort_values(by='Owner', ascending=True, inplace=True, kind='merges
 all_drafts_df.sort_values(by='Year', ascending=False, inplace=True, kind='mergesort')
 
 #Export to CSV
-all_drafts_df.to_csv('SDFFL_historical_draft_results.csv', index=False)
+all_drafts_df.to_csv('../Historical_Draft_Results.csv', index=False)
