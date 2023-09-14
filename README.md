@@ -17,7 +17,7 @@ export SWID_COOKIE = "YOUR_SWID_COOKIE_HERE"
 export ESPN_S2_COOKIES = "YOUR_ESPN_S2_COOKIE_HERE"
 ```
 ## Modifying Variables
-Make sure to update your league_id and adjust the years list in `static.py` to match the years in your fantasy football league
+Make sure to update your league_id and adjust the years list in `static.py` to match the years in your fantasy football league and the projection_years list also in 'static.py' to grab projections for the upcoming season
 
 ## Running the script
 ```
