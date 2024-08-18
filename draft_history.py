@@ -39,7 +39,7 @@ for year in years:
                               'defaultPositionId':'Position', 'fullName':'Player', 'abbrev': 'Team'}, inplace = True)
     league_draft_final['Year'] = year
     
-    #Concatenate all DataFrames in the list
+    # Concatenate all DataFrames in the list
     all_drafts_df = pd.concat([all_drafts_df, league_draft_final])
 
 # Reorder columns and format/replace values
@@ -51,7 +51,7 @@ all_drafts_df['Year'] = all_drafts_df['Year'].astype(int)
 # Sort the DataFrame by 'Player' and 'Year'
 all_drafts_df.sort_values(by=['Player', 'Year'], ascending=[True, True], inplace=True)
 
-# Adds # of years kept in a row
+# Adds # of years in a row keepers have been kept
 current_player = None
 streak_count = 0
 years_kept = []
@@ -70,16 +70,14 @@ for index, row in all_drafts_df.iterrows():
 
 all_drafts_df['Years Kept'] = years_kept
 
-#Waiver Claim?
+# Identify if keepers were initially drafted or undrafted and added via waiver claim?
 all_drafts_df['Drafted/Waiver'] = all_drafts_df.apply(lambda row: 'Drafted' if row['Kept'] == 'K' and row['Player'] in all_drafts_df.loc[all_drafts_df['Year'] == row['Year'] - 1, 'Player'].values else ('' if row['Kept'] != 'K' else 'Waiver Claim'), axis=1)
 
-#Reorder w/ new columns
+# Reorder w/ new columns
 all_drafts_df = all_drafts_df[['Year', 'Owner', 'Player', 'Team', 'Position', 'Kept', 'Drafted/Waiver', 'Years Kept', 'Paid', 'Pick']]
 
 # Sort by Paid, Kept, Owner, and then Year last
 all_drafts_df.sort_values(by=['Year', 'Owner', 'Kept', 'Paid'], ascending=[False, True, False, False], inplace=True)
 
-#Export to CSV
+# Export to CSV
 all_drafts_df.to_csv('../Historical_Draft_Results.csv', index=False)
-
-#Autofit Columns?

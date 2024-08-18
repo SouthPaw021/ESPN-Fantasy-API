@@ -19,10 +19,7 @@ espn_cookies = {"swid": SWID_COOKIE,
 # Create an empty dataframe to append to
 all_projections_df = pd.DataFrame()
 
-# Loop over all the years
-#for year in projection_years:
-    #print(year)
-    # Get all needed info for the year
+# Get all needed info for the year
 year = projection_year
 projections_df = get_player_projections(LEAGUE_ID, year, espn_cookies)
 player_df = get_player_info(year, espn_cookies)
