@@ -3,6 +3,7 @@ import requests
 import pandas as pd
 import os
 from dotenv import load_dotenv
+from static import projection_year
 
 load_dotenv()
 
@@ -15,7 +16,7 @@ def get_draft_details(league_id, season_id, espn_cookies):
         }
     
     # Got this url from the network tab in chrome and worked for older season
-    url = "https://fantasy.espn.com/apis/v3/games/ffl/leagueHistory/{}?view=mDraftDetail&view=mSettings&view=mTeam&view=modular&view=mNav&seasonId={}".format(league_id, season_id)
+    url = "https://lm-api-reads.fantasy.espn.com/apis/v3/games/ffl/leagueHistory/{}?view=mDraftDetail&view=mSettings&view=mTeam&view=modular&view=mNav&seasonId={}".format(league_id, season_id)
     r = requests.get(url,
                     headers=headers,
                     cookies=espn_cookies)
@@ -38,7 +39,7 @@ def get_player_info(season_id, espn_cookies):
         'x-fantasy-platform': 'kona-PROD-1dc40132dc2070ef47881dc95b633e62cebc9913',
         'x-fantasy-source': 'kona'
     }
-    url = "https://fantasy.espn.com/apis/v3/games/ffl/seasons/{}/players?scoringPeriodId=0&view=players_wl".format(season_id)
+    url = "https://lm-api-reads.fantasy.espn.com/apis/v3/games/ffl/seasons/{}/players?scoringPeriodId=0&view=players_wl".format(season_id)
     r = requests.get(url,
                     cookies=espn_cookies,
                     headers=custom_headers)
@@ -59,7 +60,7 @@ def get_team_info(season_id):
         'Accept': 'application/json, text/plain, */*',
         'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.130 Safari/537.36',
         }
-    url = "https://fantasy.espn.com/apis/v3/games/ffl/seasons/{}?view=proTeamSchedules_wl".format(season_id)
+    url = "https://lm-api-reads.fantasy.espn.com/apis/v3/games/ffl/seasons/{}?view=proTeamSchedules_wl".format(season_id)
     r = requests.get(url,
                     headers=headers)
     team_data = r.json()
@@ -81,7 +82,8 @@ def get_player_projections(league_id, season_id, espn_cookies):
         'x-fantasy-platform': 'kona-PROD-5cd7fbc8756f958a4250012b7badf69a8b3717d4',
         'x-fantasy-source': 'kona'
     }
-    url = "https://lm-api-reads.fantasy.espn.com/apis/v3/games/ffl/seasons/{}/segments/0/leagues/{}?scoringPeriodId=0&view=kona_player_info".format(season_id, league_id)
+    
+    url = "https://lm-api-reads.fantasy.espn.com/apis/v3/games/ffl/seasons/{}/segments/0/leagues/{}?view=kona_player_info".format(season_id, league_id)
     r = requests.get(url,
                     cookies=espn_cookies,
                     headers=projection_headers)
@@ -92,30 +94,30 @@ def get_player_projections(league_id, season_id, espn_cookies):
 
     for i in range(350):
         player = projection_detail['players'][i]
-        values = [
-            player['id'],
-            player['draftAuctionValue'],
-            player['keeperValue'],
-            player['player']['stats'][0]['appliedAverage'],
-            player['player']['stats'][0]['appliedTotal']
-            #player['ratings']['0']['positionalRanking'],
-            #player['ratings']['0']['totalRanking'],
-            #player['ratings']['0']['totalRating']
-        ]
-        merged_data.append(values)
+        for stat_line in player['player']['stats']:
+            if stat_line['id'] == '10' + projection_year:
+                try:
+                    values = [
+                        player['id'],
+                        player['draftAuctionValue'],
+                        player['keeperValue'],
+                        stat_line['appliedTotal'],
+                        stat_line['appliedAverage']
+                    ]
+                    merged_data.append(values)
+                    break
+                except:
+                    print("Failed to format data for: {}".format(player['fullName']))
 
     # Create a DataFrame from the merged_data list
     projections_df = pd.DataFrame(merged_data, columns=[
         'id',
         'draftAuctionValue',
         'keeperValue',
-        'appliedAverage',
         'appliedTotal',
-        #'positionalRanking',
-        #'totalRanking',
-        #'totalRating'
+        'appliedAverage',
     ])
-    
+
     # Rename in column
     projections_df.rename(columns = {'id':'player_id'}, inplace = True)
     return projections_df

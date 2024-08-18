@@ -71,19 +71,15 @@ for index, row in all_drafts_df.iterrows():
 all_drafts_df['Years Kept'] = years_kept
 
 #Waiver Claim?
-all_drafts_df['Drafted Last Year'] = all_drafts_df.apply(lambda row: 'Drafted' if row['Kept'] == 'K' and row['Player'] in all_drafts_df.loc[all_drafts_df['Year'] == row['Year'] - 1, 'Player'].values else ('' if row['Kept'] != 'K' else 'Waiver Claim'), axis=1)
+all_drafts_df['Drafted/Waiver'] = all_drafts_df.apply(lambda row: 'Drafted' if row['Kept'] == 'K' and row['Player'] in all_drafts_df.loc[all_drafts_df['Year'] == row['Year'] - 1, 'Player'].values else ('' if row['Kept'] != 'K' else 'Waiver Claim'), axis=1)
 
-# Sort by 'Paid' column in descending order
-all_drafts_df.sort_values(by='Paid', ascending=False, inplace=True)
+#Reorder w/ new columns
+all_drafts_df = all_drafts_df[['Year', 'Owner', 'Player', 'Team', 'Position', 'Kept', 'Drafted/Waiver', 'Years Kept', 'Paid', 'Pick']]
 
-# Sort by 'Kept' column in descending order
-all_drafts_df.sort_values(by='Kept', ascending=False, inplace=True)
-
-# Within each 'Kept' group, sort by 'Owner' column in ascending order
-all_drafts_df.sort_values(by='Owner', ascending=True, inplace=True, kind='mergesort')
-
-# Within each 'Kept' and 'Owner' group, sort by 'Year' column in descending order
-all_drafts_df.sort_values(by='Year', ascending=False, inplace=True, kind='mergesort')
+# Sort by Paid, Kept, Owner, and then Year last
+all_drafts_df.sort_values(by=['Year', 'Owner', 'Kept', 'Paid'], ascending=[False, True, False, False], inplace=True)
 
 #Export to CSV
 all_drafts_df.to_csv('../Historical_Draft_Results.csv', index=False)
+
+#Autofit Columns?

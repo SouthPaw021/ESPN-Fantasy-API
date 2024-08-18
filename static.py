@@ -1,5 +1,6 @@
-# file with all the static variables
+# Static variables
 
+# Eligible Positions
 position_mapping = {
     1: 'QB',
     2: 'RB',
@@ -9,31 +10,34 @@ position_mapping = {
     16: 'D/ST'
 }
 
+# League owners
 league_teams = {
-    1: 'Team One',
-    2: 'Team Two',
-    3: 'Team Three',
-    4: 'Team Four',
-    5: 'Team Five',
-    6: 'Team Six',
-    7: 'Team Seven',
-    8: 'Team Eight',
-    9: 'Team Nine',
-    10: 'Team Ten',
-    11: 'Team Eleven',
-    12: 'Team Twelve'
+    1: 'Team 1',
+    2: 'Team 2',
+    3: 'Team 3',
+    4: 'Team 4',
+    5: 'Team 5',
+    6: 'Team 6',
+    7: 'Team 7',
+    8: 'Team 8',
+    9: 'Team 9',
+    10: 'Team 10',
+    11: 'Team 11',
+    12: 'Team 12',
+    13: 'Team 13',
+    14: 'Team 14',
+    15: 'Team 15',
+    16: 'Team 16'
 }
 
-# have all eligible draft years
+# All completed draft years
 years = [
-    '2012',
-    '2013',
-    '2014',
-    '2015',
-    '2016',
-    '2017',
-    '2018',
     '2019',
     '2020',
     '2021',
+    '2022',
+    '2023'
 ]
+
+# Current year projections
+projection_year = '2024'
