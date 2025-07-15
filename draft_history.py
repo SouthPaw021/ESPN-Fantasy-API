@@ -43,7 +43,6 @@ for year in years:
     all_drafts_df = pd.concat([all_drafts_df, league_draft_final])
 
 # Reorder columns and format/replace values
-# all_drafts_df = all_drafts_df[['Year', 'Owner', 'Player', 'Team', 'Position', 'Kept', 'Paid', 'Pick']]
 all_drafts_df['Paid'] = all_drafts_df['Paid'].apply(lambda x: "${:,.0f}".format(x))
 all_drafts_df['Kept'] = all_drafts_df['Kept'].replace({True: 'K', False: ''})
 all_drafts_df['Year'] = all_drafts_df['Year'].astype(int)
