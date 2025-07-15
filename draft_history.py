@@ -43,32 +43,43 @@ for year in years:
     all_drafts_df = pd.concat([all_drafts_df, league_draft_final])
 
 # Reorder columns and format/replace values
-all_drafts_df = all_drafts_df[['Year', 'Owner', 'Player', 'Team', 'Position', 'Kept', 'Paid', 'Pick']]
+# all_drafts_df = all_drafts_df[['Year', 'Owner', 'Player', 'Team', 'Position', 'Kept', 'Paid', 'Pick']]
 all_drafts_df['Paid'] = all_drafts_df['Paid'].apply(lambda x: "${:,.0f}".format(x))
 all_drafts_df['Kept'] = all_drafts_df['Kept'].replace({True: 'K', False: ''})
 all_drafts_df['Year'] = all_drafts_df['Year'].astype(int)
 
 # Sort the DataFrame by 'Player' and 'Year'
-all_drafts_df.sort_values(by=['Player', 'Year'], ascending=[True, True], inplace=True)
+all_drafts_df = all_drafts_df.sort_values(['Player', 'Year']).reset_index(drop=True)
 
-# Adds # of years in a row keepers have been kept
-current_player = None
-streak_count = 0
-years_kept = []
+# Store streak results
+consecutive_years_kept_results = []
 
-for index, row in all_drafts_df.iterrows():
-    if row['Kept'] == 'K':
-        if row['Player'] == current_player:
-            streak_count += 1
-        else:
-            current_player = row['Player']
-            streak_count = 1
-    else:
-        streak_count = 0
+# Process each player separately
+for player, group in all_drafts_df.groupby('Player'):
+    group = group.sort_values('Year')
     
-    years_kept.append(streak_count)
+    last_year = None
+    kept_streak = 0
+    
+    for idx, row in group.iterrows():
+        if row['Kept'] == 'K':
+            if last_year is not None and row['Year'] == last_year + 1:
+                # Consecutive year
+                kept_streak += 1
+            else:
+                # First 'K' ever or after gap
+                kept_streak = 1
+            last_year = row['Year']
+        else:
+            # Player was drafted but not kept
+            kept_streak = 0
+            last_year = row['Year']
 
-all_drafts_df['Years Kept'] = years_kept
+        consecutive_years_kept_results.append((idx, kept_streak))
+
+# Merge streak counts back into main dataframe
+years_kept_df = pd.DataFrame(consecutive_years_kept_results, columns=['Index', 'Years Kept']).set_index('Index')
+all_drafts_df['Years Kept'] = years_kept_df['Years Kept']
 
 # Identify if keepers were initially drafted or undrafted and added via waiver claim?
 all_drafts_df['Drafted/Waiver'] = all_drafts_df.apply(lambda row: 'Drafted' if row['Kept'] == 'K' and row['Player'] in all_drafts_df.loc[all_drafts_df['Year'] == row['Year'] - 1, 'Player'].values else ('' if row['Kept'] != 'K' else 'Waiver Claim'), axis=1)
