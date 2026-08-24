@@ -126,3 +126,24 @@ dmypy.json
 
 # Contains Private League Owner Names
 static.py
+
+# League-specific rules/format (keeper structure, budget, roster construction)
+# and/or direct reads of the private Excel workbook or other private local data
+keeper_roster_snapshot.py
+optimal_draft_targets.py
+build_regression_dataset.py
+predict_auction_prices.py
+excel_export.py
+keeper_history.py
+compute_playoff_pts_target.py
+setup_optimal_draft_targets_button.txt
+fit_regression_model.py
+track_prediction_accuracy.py
+
+# Full private operations doc (league rules, running the pipeline, local
+# automation setup) -- the human-readable companion to the gitignore scope
+# above, kept out of the public repo for the same reasons.
+README_PRIVATE.md
+
+# Cached league history pulled from ESPN (regenerate with the various compute_*.py / draft_history.py scripts)
+data/
